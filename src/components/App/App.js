@@ -1,4 +1,4 @@
-import React, {useReducer} from 'react';
+import React, {useReducer, useEffect} from 'react';
 import './App.css';
 import Header from '../Header/Header';
 import Search from '../Search/Search';
@@ -52,6 +52,9 @@ const reducer = (state, action) => {
   }
 };
 
+const x_rapidapi_host = 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com';
+const	x_rapidapi_key = '78f79a5905msh6853cb2b3677d2dp117142jsnb799e053d58d';
+
 const URL = 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes';
 const INGREDIENTS = '/findByIngredients';
 const INGREDIENTS_QUERY_DEFAULT = 'number=5&ranking=1&ignorePantry=false&ingredients=apples%2Cflour%2Csugar';
@@ -60,9 +63,82 @@ const RECIPE = '/information';
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const search = (searchValue) => {
-    console.log(searchValue);
+  useEffect(
+    ()=>{
+      fetch(URL + INGREDIENTS + '?' + INGREDIENTS_QUERY_DEFAULT, 
+        {
+          headers:{
+            'x_rapidapi_host': x_rapidapi_host,
+            'x_rapidapi_key': x_rapidapi_key
+          }
+        }
+      )
+        .then(response => response.json())
+        .then(jsonResponse => {
+          if(!jsonResponse.error){
+            dispatch({
+              type: 'RECIPE_CARDS',
+              payload: jsonResponse
+            });
+          }else{
+            dispatch({
+              type: 'REQUEST_ERROR',
+              error: jsonResponse.error
+            });
+          }
+        });
+    },
+    []
+  );
+
+  const prepareSearchValue = (searchValue) => {
+    let values = '';
+    if(searchValue.indexOf(',') !== -1){
+      values += searchValue.replace(' ', '');
+    }else if(searchValue.indexOf(' ') !== -1){
+      const vals = searchValue.split(' ');
+      for(let val_id = 0; val_id < vals.length; val_id++){
+        values += vals[val_id] + ',';
+      }
+      values = values.substr(0, values.length - 1);
+    }else{
+      values = searchValue;
+    }
+    return values;
   };
+
+  const search = (searchValue) => {
+    dispatch({
+      type: 'SENDING_REQUEST'
+    });
+
+    const ingredients = prepareSearchValue(searchValue);
+
+    fetch(URL + INGREDIENTS + '?' + ingredients,
+      {
+        headers:{
+          'x_rapidapi_host': x_rapidapi_host,
+          'x_rapidapi_key': x_rapidapi_key
+        }
+      }
+    )
+      .then(response => response.json())
+      .then(jsonResponse => {
+        if(!jsonResponse.error){
+          dispatch({
+            type: 'RECIPE_CARDS',
+            payload: jsonResponse
+          });
+        }else{
+          dispatch({
+            type: 'REQUEST_ERROR',
+            error: jsonResponse.error
+          });
+        }        
+      });
+  };
+
+  const showRecipe = () => {};
 
   return <div className='App'>
     <Header text='Recipe food nutrition'/>
