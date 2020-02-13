@@ -1,7 +1,7 @@
 {
   "name": "recipe-food-react",
   "version": "1.0.0",
-  "description": "React app with Recipe - Food - Nutrition RapidAPI",
+  "description": "React app with EDAMAM recipe search API",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --config webpack.config.js --env.env=dev",
@@ -16,10 +16,9 @@
   },
   "keywords": [
     "react",
-    "RapidAPI",
+    "EDAMAM",
     "recipe",
-    "food",
-    "nutrition"
+    "food"
   ],
   "author": "MayaFireFly <maya_isb@mail.ru>",
   "license": "MIT",

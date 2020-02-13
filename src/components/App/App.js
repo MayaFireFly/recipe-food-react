@@ -2,8 +2,7 @@ import React, {useReducer, useEffect} from 'react';
 import './App.css';
 import Header from '../Header/Header';
 import Search from '../Search/Search';
-import Recipe from '../Recipe/Recipe';
-import RecipeCard from '../Recipe/RecipeCard';
+import RecipeCard from '../RecipeCard/RecipeCard';
 import Loading from '../Loading/Loading';
 
 const initialState = {
@@ -31,14 +30,6 @@ const reducer = (state, action) => {
       recipe: {},
       errorMessage: null 
     };
-  case 'RECIPE':
-    return {
-      ...state,
-      loading: false,
-      recipeCards: [],
-      recipe: action.payload,
-      errorMessage: null 
-    };
   case 'REQUEST_ERROR':
     return {
       ...state,
@@ -52,109 +43,85 @@ const reducer = (state, action) => {
   }
 };
 
-const x_rapidapi_host = 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com';
-const	x_rapidapi_key = '78f79a5905msh6853cb2b3677d2dp117142jsnb799e053d58d';
+//your EDAMAM recipe search api_id and api_key here
+const app_id = '07aaf1d5';                
+const app_key = '579403bfc2204c8f9be02952d6698dd6	';
 
-const URL = 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes';
-const INGREDIENTS = '/findByIngredients';
-const INGREDIENTS_QUERY_DEFAULT = 'number=5&ranking=1&ignorePantry=false&ingredients=apples%2Cflour%2Csugar';
-const RECIPE = '/information';
+const URL = `https://api.edamam.com/search?app_id=${app_id}&app_key=${app_key}&q=`;
+const INGREDIENTS_QUERY_DEFAULT = 'apple';
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(
     ()=>{
-      fetch(URL + INGREDIENTS + '?' + INGREDIENTS_QUERY_DEFAULT, 
-        {
-          headers:{
-            'x_rapidapi_host': x_rapidapi_host,
-            'x_rapidapi_key': x_rapidapi_key
-          }
-        }
-      )
-        .then(response => response.json())
-        .then(jsonResponse => {
-          if(!jsonResponse.error){
-            dispatch({
-              type: 'RECIPE_CARDS',
-              payload: jsonResponse
-            });
+      fetch(URL + INGREDIENTS_QUERY_DEFAULT)
+        .then(response => {
+          if(response.ok){
+            return response.json();
           }else{
-            dispatch({
-              type: 'REQUEST_ERROR',
-              error: jsonResponse.error
-            });
+            throw new Error(response.status + ' ' + response.statusText + ' Error');
           }
+        })
+        .then(jsonResponse => {                   
+          const recipes = jsonResponse.hits.map(recipe=>recipe.recipe);          
+          dispatch({
+            type: 'RECIPE_CARDS',
+            payload: recipes
+          });          
+        })
+        .catch(error => {          
+          dispatch({
+            type: 'REQUEST_ERROR',
+            error: error.message
+          });
         });
     },
     []
   );
-
-  const prepareSearchValue = (searchValue) => {
-    let values = '';
-    if(searchValue.indexOf(',') !== -1){
-      values += searchValue.replace(' ', '');
-    }else if(searchValue.indexOf(' ') !== -1){
-      const vals = searchValue.split(' ');
-      for(let val_id = 0; val_id < vals.length; val_id++){
-        values += vals[val_id] + ',';
-      }
-      values = values.substr(0, values.length - 1);
-    }else{
-      values = searchValue;
-    }
-    return values;
-  };
+  
 
   const search = (searchValue) => {
     dispatch({
       type: 'SENDING_REQUEST'
-    });
+    });    
 
-    const ingredients = prepareSearchValue(searchValue);
-
-    fetch(URL + INGREDIENTS + '?' + ingredients,
-      {
-        headers:{
-          'x_rapidapi_host': x_rapidapi_host,
-          'x_rapidapi_key': x_rapidapi_key
-        }
-      }
-    )
-      .then(response => response.json())
-      .then(jsonResponse => {
-        if(!jsonResponse.error){
-          dispatch({
-            type: 'RECIPE_CARDS',
-            payload: jsonResponse
-          });
+    fetch(URL + searchValue)
+      .then(response => {
+        if(response.ok){
+          return response.json();
         }else{
-          dispatch({
-            type: 'REQUEST_ERROR',
-            error: jsonResponse.error
-          });
-        }        
+          throw new Error(response.status + ' ' + response.statusText + ' Error');
+        }
+      })
+      .then(jsonResponse => {        
+        const recipes = jsonResponse.hits.map(recipe=>recipe.recipe);
+        dispatch({
+          type: 'RECIPE_CARDS',
+          payload: recipes
+        });         
+      })
+      .catch(error => {          
+        dispatch({
+          type: 'REQUEST_ERROR',
+          error: error.message
+        });
       });
-  };
-
-  const showRecipe = () => {};
+  }; 
 
   return <div className='App'>
-    <Header text='Recipe food nutrition'/>
+    <Header text='Recipes from EDAMAM'/>
     <Search search={search}/>
     {state.loading && ! state.errorMessage ? (
       <Loading/>
     ) : state.errorMessage ? (
       <div className='App-error'>{state.errorMessage}</div>
     ) : state.recipeCards.length > 0 ? (
-      state.recipeCards.map((recipeCard, index) => (
-        <RecipeCard recipe={recipeCard} key={`${index}-${recipeCard.title}`}/>
-      ))
-    ) : state.recipe && state.recipe.id && state.recipe.id !== '' ? (
-      state.recipe.map((recipe, index) => (
-        <Recipe recipe={recipe} key={`${index}-${recipe.id}`}/> 
-      ))
+      <div className='App-cards'>
+        {state.recipeCards.map((recipeCard, index) => (
+          <RecipeCard recipe={recipeCard} key={`${index}-${recipeCard.label}`}/>
+        ))}
+      </div>
     ) : ''}
   </div>;
 };  

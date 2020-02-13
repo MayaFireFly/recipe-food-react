@@ -1,2 +1,2 @@
 # recipe-food-react
-React app with Recipe - Food - Nutrition RapidAPI
+React app with EDAMAM recipe search API

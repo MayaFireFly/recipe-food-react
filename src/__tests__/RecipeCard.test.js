@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import RecipeCard from '../components/Recipe/RecipeCard';
+import RecipeCard from '../components/RecipeCard/RecipeCard';
 
 describe('RecipeCard', () => {  
   it('render RecipeCard without crushing', () => {
