@@ -44,8 +44,8 @@ const reducer = (state, action) => {
 };
 
 //your EDAMAM recipe search api_id and api_key here
-const app_id = '';                
-const app_key = '';
+const app_id = '07aaf1d5';                
+const app_key = '579403bfc2204c8f9be02952d6698dd6';
 
 const URL = `https://api.edamam.com/search?app_id=${app_id}&app_key=${app_key}&q=`;
 const INGREDIENTS_QUERY_DEFAULT = 'apple';
